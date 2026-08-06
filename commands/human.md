@@ -1,34 +1,35 @@
 ---
-description: Measure markdown prose against the published style budgets and report what is over.
-argument-hint: "[path ...] [--quiet] [--lang en|it] [--register <name>]"
+description: Load the prose conventions for this session — budgets, persona, and the register routing table.
+argument-hint: "[--no-persona]"
 allowed-tools: Bash(node:*), Read, Glob
 ---
 
-Run the scanner over the paths in `$ARGUMENTS`, or over the repository's markdown when no path
-is given:
+Load the writing conventions before producing prose this session.
+
+Run the diagnostic to see what is actually in force:
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/bin/human.js" $ARGUMENTS
+node "${CLAUDE_PLUGIN_ROOT}/bin/human.js" --doctor
 ```
 
-Then, for each file reported over budget:
+Then read, in this order:
 
-1. Read the file.
-2. Read the register document the report names, under `${CLAUDE_PLUGIN_ROOT}/registers/`. If the
-   report says no register matched, apply the rubric in the human skill, name the register you
-   chose, and say why in one line.
-3. Propose edits to the prose. Show them; do not apply them without being asked.
+1. `${CLAUDE_PLUGIN_ROOT}/skills/human/SKILL.md` — the routing table and the five-question
+   rubric for choosing a register when the table has no entry.
+2. The persona file, if the diagnostic listed one. It states who is writing, who they write
+   for, and the positions they hold. Apply it to every piece of prose this session until told
+   otherwise. Skip this step if `$ARGUMENTS` contains `--no-persona`.
 
-Rules to hold to while doing this:
+Do **not** read every register document now. Read one when you know what you are writing.
 
-- Fix the prose, never the budget. The numbers come from published corpus studies and each one
-  carries its source in `rules/invariants.yml`.
-- Findings marked advisory do not gate. Mention them once and move on. The em-dash rate tracks
-  one model generation's training data and the antithesis construction has no controlled study
-  behind it, which is why neither can fail a document.
-- A quoted counter-example inside `<!-- human:off -->` fences is excluded on purpose. Leave it.
-- `--fix` exists and deliberately refuses to run. A rule can tell you a sentence is over budget;
-  it cannot tell you what the sentence was trying to say.
+Hold to this for the rest of the session:
 
-The scanner measures a budget. It does not judge who wrote the text, and neither should the
-report you give back.
+- The budgets shown by the diagnostic are the floor, not the goal. Clearing them says the
+  prose is not obviously machine-made; it says nothing about whether it is any good.
+- Where a budget shows as adjusted, the persona moved it and that is legitimate. Where one
+  shows as clamped, the persona asked for more than the ceiling allows and did not get it.
+- A number you measured beats an adjective. Concrete beats abstract.
+- Say the positive once. Do not defend a claim the reader never attacked.
+- Vary sentence length hard, and vary list length; not everything is three items.
+
+The scanner measures a budget. It does not judge who wrote the text, and neither should you.
