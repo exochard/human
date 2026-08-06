@@ -13,7 +13,7 @@
       "name": "human",
       "source": "./",
       "description": "Enforces a published prose style budget on the markdown and git text an agent writes. Deterministic checks with zero model calls in the hook path, per-artifact register routing, and a stated confidence level and source on every rule.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "license": "MIT",
       "keywords": [
         "prose",

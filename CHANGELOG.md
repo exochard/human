@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.3.0 — 2026-08-06
+
+### Breaking
+
+- The loader command is `/human:human-load`, not `/human:human`. `commands/human.md` and
+  `skills/human/` both resolved to the same invocation, and `claude plugin details` listed
+  two components called `human`. A test now forbids a command basename matching a skill
+  directory.
+
+### Added
+
+- A register may switch off an invariant that does not apply to its artifact, through
+  `disableInvariants` in `rules/registers.yml`. The rule still runs and still reports; it
+  stops gating.
+- `scripts/check-version-freshness.js`, run as part of `npm test`. It fails when a shipped
+  file has changed since the version was last set. Claude Code keys its plugin cache on the
+  version string, so a fully pushed repo can go on serving old code while
+  `plugin marketplace update` reports success.
+
+### Fixed
+
+- The commit gate no longer blocks a commit message on `burstiness`. That rule measures
+  prose rhythm; a commit body is a list of facts, and uniform sentence length there is
+  correct writing. It fired on a real revert explanation and would have blocked the commit
+  that fixed the revert.
+- The commit-gate tests run from a scratch directory. They read `.git/COMMIT_EDITMSG` from
+  the cwd, so their result depended on this repo's own last commit message and they passed
+  or failed by luck.
+- Both hooks were briefly switched to stderr with exit 2 and have been reverted. See the
+  0.2.0 notes below for what the running CLI actually does.
+
 ## 0.2.0 — 2026-08-06
 
 ### Breaking
@@ -42,15 +73,8 @@
   `skills/human/` both resolved to `/human:human`, and `claude plugin details` listed two
   components called `human`. The loader is `/human:human-load`, and a test asserts no command
   basename ever matches a skill directory again.
-
-- A register may switch off an invariant that does not apply to its artifact, via
-  `disableInvariants` in `rules/registers.yml`. The rule still runs and still reports; it
-  stops gating. `commit` disables `burstiness`: it measures prose rhythm, a commit body is a
-  list of facts, and it fired on a real revert explanation and would have blocked the commit
-  that fixed it.
-- The commit-gate tests run from a scratch directory. They read
-  `.git/COMMIT_EDITMSG` from the cwd, so their result depended on this repo's own last commit
-  message and they passed or failed by luck.
+- Persona files are never scanned. A file describing how you write is not a document written
+  in your style.
 
 ### Reverted during development
 
@@ -71,8 +95,6 @@ reading docs:
 Both hooks carry a comment saying not to make that change again, and the tests assert the
 verified shapes. Worth recording rather than quietly reverting: the wrong version was written
 because a documentation line was read as a full contract, and only running the thing settled it.
-- Persona files are never scanned. A file describing how you write is not a document written in
-  your style.
 
 ### Known limits
 

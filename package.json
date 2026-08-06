@@ -1,11 +1,12 @@
 {
   "name": "human",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
-    "test": "node tests/run-all.js",
+    "test": "node tests/run-all.js && node scripts/check-version-freshness.js",
     "benchmark": "node benchmark/run-benchmark.js",
-    "check": "node bin/human.js"
+    "check": "node bin/human.js",
+    "check-version": "node scripts/check-version-freshness.js"
   },
   "engines": {
     "node": ">=18"
