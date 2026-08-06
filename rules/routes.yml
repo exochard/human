@@ -1,0 +1,20 @@
+version: 1
+note: "First match wins, so this file is ordered most-specific first. A path that matches nothing is not an error. It is handed to the rubric in SKILL.md, and the agent names and justifies the register itself."
+default_language: en
+routes:
+  - match: "**/COMMIT_EDITMSG"
+    register: commit
+  - match: "**/*.pr.md"
+    register: pr
+  - match: "CHANGELOG.md"
+    register: changelog
+  - match: "**/CHANGELOG.md"
+    register: changelog
+  - match: "README.md"
+    register: readme
+  - match: "**/README.md"
+    register: readme
+  - match: "docs/**/*.md"
+    register: technical-doc
+  - match: "**/docs/**/*.md"
+    register: technical-doc

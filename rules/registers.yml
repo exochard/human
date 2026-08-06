@@ -1,0 +1,39 @@
+version: 1
+note: "Register-scoped mechanical checks. A check that matters in a README is meaningless in a commit message, which is the whole reason registers exist. A register named here must have a matching document in registers/, and a test enforces that."
+registers:
+  readme:
+    checks:
+      bolded-bullets:
+        maxRatio: 0.5
+        minBullets: 3
+        gates: true
+      emoji-heading:
+        budget: 0
+        gates: false
+  technical-doc:
+    checks:
+      bolded-bullets:
+        maxRatio: 0.6
+        minBullets: 3
+        gates: true
+      emoji-heading:
+        budget: 0
+        gates: true
+  changelog:
+    checks:
+      emoji-heading:
+        budget: 0
+        gates: false
+  commit:
+    checks:
+      commit-opener:
+        gates: true
+  pr:
+    checks:
+      bullet-per-file:
+        budget: 3
+        gates: true
+      bolded-bullets:
+        maxRatio: 0.6
+        minBullets: 3
+        gates: false

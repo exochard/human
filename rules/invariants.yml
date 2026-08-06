@@ -1,0 +1,40 @@
+version: 1
+note: "Budgets are rates per 1000 words unless stated otherwise. Every rule carries a confidence level and a source. Rules with confidence weak never gate: they are reported so a writer can judge for themselves. Rates are not measured at all below 150 words, where they mean nothing."
+rules:
+  tricolon:
+    budget: 4.0
+    confidence: strong
+    gates: true
+    source: "https://arxiv.org/abs/2604.19768"
+    note: "Measured at 7.13 per document in LLM text against 3.73 in human expert text, p<0.001. The budget sits between the two."
+  vocab:
+    budget: 2.0
+    confidence: strong
+    gates: true
+    source: "https://arxiv.org/abs/2406.07016"
+    note: "Word lists live in rules/vocab/<language>.yml, each with its own source and confidence."
+  burstiness:
+    floor: 0.35
+    minSentences: 8
+    confidence: moderate
+    gates: true
+    source: "https://arxiv.org/abs/2308.09067"
+    note: "Fails below the floor, not above it. The floor is calibrated on this repo's fixture corpus, because the literature reports a direction rather than a threshold. See benchmark/README.md for the measured separation."
+  unbacked:
+    budget: 1.5
+    confidence: weak
+    gates: false
+    source: "inference from maintainer complaints; no controlled study located"
+    adjectives: [blazing, seamless, effortless, powerful, incredible, amazing, revolutionary, game-changing, lightning-fast, unparalleled, best-in-class, world-class, "state-of-the-art", magical, delightful]
+  em-dash:
+    budget: 1.2
+    confidence: weak
+    gates: false
+    source: "https://www.seangoedecke.com/em-dashes/"
+    note: "Real for GPT-4o and 4.1. A 2023 study of other model families found the opposite direction. Advisory only."
+  antithesis:
+    budget: 0.4
+    confidence: weak
+    gates: false
+    source: "no controlled study located"
+    note: "Repeated everywhere as a giveaway, never measured against a human rhetorical baseline. Advisory only."
