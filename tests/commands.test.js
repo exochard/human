@@ -8,7 +8,7 @@ const { test, done } = require('./helpers/harness');
 
 const ROOT = path.join(__dirname, '..');
 const CLI = path.join(ROOT, 'bin/human.js');
-const NAMES = ['human', 'human-review', 'human-persona', 'human-doctor'];
+const NAMES = ['human-load', 'human-review', 'human-persona', 'human-doctor'];
 
 function read(name) {
   return fs.readFileSync(path.join(ROOT, 'commands', `${name}.md`), 'utf8');
@@ -53,7 +53,14 @@ test('the persona command fences the sample block', () => {
 });
 
 test('the loader command does not read every register up front', () => {
-  assert.ok(/Do \*\*not\*\* read every register document now/.test(read('human')));
+  assert.ok(/Do \*\*not\*\* read every register document now/.test(read('human-load')));
+});
+
+test('no command basename collides with the skill directory name', () => {
+  const skills = fs.readdirSync(path.join(ROOT, 'skills'));
+  for (const name of NAMES) {
+    assert.ok(!skills.includes(name), `/human:${name} is ambiguous: a skill directory shares the name`);
+  }
 });
 
 test('--doctor reports budgets, persona state, and exits 0', () => {

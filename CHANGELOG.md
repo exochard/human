@@ -9,8 +9,9 @@
   Code discovers skills at `skills/<name>/SKILL.md` and nowhere else, so the routing table and
   the register rubric were never loaded by anything while every test reported green. Anyone who
   referenced those paths directly needs to update them.
-- `/human` is now `/human:human-review`. `/human:human` is a different command that loads the
-  conventions rather than auditing a file.
+- `/human` is now `/human:human-review`. `/human:human-load` is a different command that loads
+  the conventions rather than auditing a file. It is not called `/human:human` because the
+  skill directory is also named `human`, and the two would resolve to the same invocation.
 
 ### Added
 
@@ -24,7 +25,7 @@
   rule firing under an adjusted budget names the adjustment.
 - `allow` in persona frontmatter removes domain jargon from the vocabulary list. Closes the
   v0.1.0 limit that a repo with real jargon had no way to declare it.
-- `/human:human` loads budgets, persona, and the routing table deliberately.
+- `/human:human-load` loads budgets, persona, and the routing table deliberately.
 - `/human:human-persona` runs the interview, with `--show` and `--edit`.
 - `/human:human-doctor` and `--doctor` report what is in force: budgets with their adjustments
   and clamps, persona sources, vocabularies, register guidance, and the register a given path
@@ -37,14 +38,30 @@
 
 ### Fixed
 
-- **Both hooks were speaking into the void.** `PostToolUse` emitted its report as
-  `additionalContext` on stdout at exit 0. That field is documented for `SessionStart` and
-  appears nowhere in the `PostToolUse` contract, where the mechanism is stderr with exit 2, so
-  the violation report was written where the model does not read. `PreToolUse` emitted its
-  denial on stdout at exit 0 instead of stderr with exit 2 and `systemMessage`, so the commit
-  gate blocked nothing. Both were found by reading the official hook contract, not by the
-  tests, which asserted the shape the hooks happened to emit. The tests now assert the
-  contract.
+- Command basenames no longer collide with the skill directory. `commands/human.md` and
+  `skills/human/` both resolved to `/human:human`, and `claude plugin details` listed two
+  components called `human`. The loader is `/human:human-load`, and a test asserts no command
+  basename ever matches a skill directory again.
+
+### Reverted during development
+
+Mid-development both hooks were switched from stdout at exit 0 to stderr at exit 2, on the
+strength of a line in the hook documentation. That change was wrong and has been reverted.
+Behaviour against the running CLI, checked by inspecting session transcripts rather than
+reading docs:
+
+- `PostToolUse` with `additionalContext` on stdout at exit 0 produces a
+  `hook_additional_context` attachment and reaches the model exactly as intended. At exit 2
+  the same report is classified `hook_blocking_error`, and the model came away unsure whether
+  the write had succeeded — the opposite of a hook whose contract is "reports, never blocks".
+- `PreToolUse` with `permissionDecision` on stdout at exit 0 blocks cleanly, with
+  `toolDenialKind: "permission-rule"` and the reason string delivered verbatim. Exit 2 also
+  blocks, but Claude Code does not parse JSON on that path: it wraps stderr behind a generic
+  `hook error:` prefix, so the model receives a JSON blob instead of a reason.
+
+Both hooks carry a comment saying not to make that change again, and the tests assert the
+verified shapes. Worth recording rather than quietly reverting: the wrong version was written
+because a documentation line was read as a full contract, and only running the thing settled it.
 - Persona files are never scanned. A file describing how you write is not a document written in
   your style.
 

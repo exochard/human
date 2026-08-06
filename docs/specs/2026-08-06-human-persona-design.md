@@ -114,7 +114,7 @@ the file is there.
 
 | Command | Does |
 |---|---|
-| `/human:human` | Loads invariants, persona, and the register index deliberately |
+| `/human:human-load` | Loads invariants, persona, and the register index deliberately |
 | `/human:human-review` | Analyses files, a directory, or `--diff`. This is v0.1.0's `human.md`, renamed |
 | `/human:human-persona` | Runs the interview; `--show` and `--edit` for an existing file |
 | `/human:human-doctor` | What is active now: budgets, adjustments and clamps, persona source, routing resolution for a given path |

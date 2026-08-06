@@ -27,13 +27,14 @@ function contextOf(result) {
 }
 
 /**
- * PostToolUse feeds the model through stderr with exit 2. Exit 0 puts stdout
- * in the transcript, which the model may never read, so silence is asserted as
- * "exit 0 and nothing on either stream".
+ * PostToolUse reports through additionalContext on stdout at exit 0, which the
+ * CLI turns into a hook_additional_context attachment. Exit 2 with stderr was
+ * tried and reverted: the CLI classifies it as hook_blocking_error, and the
+ * model came away unsure whether the write had succeeded.
  */
 function feedbackOf(result) {
-  if (result.status === 0) return '';
-  return result.stderr || '';
+  if (!result.stdout || result.stdout.trim() === '') return '';
+  return JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
 }
 function assertSilent(result, why) {
   assert.strictEqual(result.status, 0, why);
@@ -122,7 +123,7 @@ test('a violating README reports and loads its register document', () => {
     + 'We utilize a holistic approach to unlock transformative outcomes. ').repeat(5));
 
   const result = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } }));
-  assert.strictEqual(result.status, 2, 'PostToolUse feeds the model through stderr with exit 2');
+  assert.strictEqual(result.status, 0, 'reporting is not blocking');
   const context = feedbackOf(result);
   assert.ok(context.includes('vocab'), 'names the rule that fired');
   assert.ok(context.includes('Register guidance for "readme"'), 'lazily loaded the register doc');
@@ -134,9 +135,9 @@ test('the hook reports without denying anything', () => {
   const file = path.join(dir, 'README.md');
   fs.writeFileSync(file, 'It is robust, powerful, and scalable. '.repeat(40));
   const r = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } }));
-  assert.strictEqual(r.status, 2, 'exit 2 is how PostToolUse speaks to the model');
-  assert.ok(!/permissionDecision/.test(r.stderr), 'PostToolUse reports; it does not deny');
-  assert.ok(!/"decision"\s*:\s*"block"/.test(r.stderr));
+  assert.strictEqual(r.status, 0, 'exit 2 would surface as a blocking error on a write that succeeded');
+  assert.strictEqual(r.stderr.trim(), '');
+  assert.ok(!/permissionDecision/.test(r.stdout), 'PostToolUse reports; it does not deny');
 });
 
 test('a persona path is never scanned', () => {
@@ -158,7 +159,7 @@ test('session-start names a persona when one exists', () => {
     input: '', encoding: 'utf8', cwd: home, env: { ...process.env, HOME: home },
   }));
   assert.ok(/A persona is on disk/.test(context), context);
-  assert.ok(/\/human:human/.test(context), 'names the command that loads it');
+  assert.ok(/\/human:human-load/.test(context), 'names the command that loads it');
   assert.ok(!context.includes('I build infrastructure'), 'names the file without loading its content');
   assert.ok(context.length <= MAX_CHARS, `injected ${context.length} chars, cap ${MAX_CHARS}`);
 });

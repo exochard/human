@@ -74,7 +74,7 @@ than one that did not.
 
 `allow` in the frontmatter removes domain jargon from the vocabulary list.
 
-The persona loads on `/human:human` and `/human:human-review --persona`, not automatically.
+The persona loads on `/human:human-load` and `/human:human-review --persona`, not automatically.
 It is large, most sessions write no prose, and paying its weight ambiently would be the wrong
 trade. `SessionStart` names the file in one line so you do not have to remember it exists.
 
@@ -99,7 +99,7 @@ SessionStart          injects the gating budgets once, capped at 1200 characters
 Write / Edit          nothing
 PostToolUse           scans a markdown write; silent when it is within budget
                       over budget, it reports and loads the routed register document
-/human:human          loads budgets, persona, and the routing table deliberately
+/human:human-load     loads budgets, persona, and the routing table deliberately
 /human:human-review   audits prose already on disk
 /human:human-persona  runs the interview
 /human:human-doctor   shows what is in force and why

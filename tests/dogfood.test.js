@@ -19,7 +19,7 @@ const ROOT = path.join(__dirname, '..');
 const REG = 'skills/human/references/registers';
 
 function shipped() {
-  const targets = ['README.md', 'CHANGELOG.md', 'skills/human/SKILL.md', 'commands/human.md', 'benchmark/README.md'];
+  const targets = ['README.md', 'CHANGELOG.md', 'skills/human/SKILL.md', 'commands/human-load.md', 'benchmark/README.md'];
   for (const f of fs.readdirSync(path.join(ROOT, REG))) targets.push(`${REG}/${f}`);
   for (const dir of ['docs/specs', 'docs/plans']) {
     for (const f of fs.readdirSync(path.join(ROOT, dir))) targets.push(`${dir}/${f}`);

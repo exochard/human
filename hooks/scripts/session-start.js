@@ -61,7 +61,7 @@ function personaLine() {
     const { userPath, projectPath } = findPersona(process.cwd());
     const found = projectPath || userPath;
     if (!found) return '';
-    return `\nA persona is on disk (${found}). Run /human:human to load it.`;
+    return `\nA persona is on disk (${found}). Run /human:human-load to load it.`;
   } catch (e) {
     return '';
   }

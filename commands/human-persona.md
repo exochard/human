@@ -96,7 +96,7 @@ Rules for writing it:
 
 ## Finally
 
-Show the file, say where it was written, and tell the user it loads on `/human:human` and
+Show the file, say where it was written, and tell the user it loads on `/human:human-load` and
 `/human:human-review --persona`, not automatically.
 
 Say plainly what the persona does and does not do: it shapes what the model is told before it

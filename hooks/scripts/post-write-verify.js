@@ -47,18 +47,25 @@ function registerDoc(register) {
 }
 
 /**
- * PostToolUse feeds text back to the model through stderr with exit 2. Exit 0
- * only puts stdout in the transcript, where the model may never read it.
+ * Report through `additionalContext` on stdout, at exit 0.
  *
- * The first implementation emitted `additionalContext` on stdout at exit 0.
- * That field is documented for SessionStart and appears nowhere in the
- * PostToolUse contract, so the report was being written somewhere nobody was
- * listening while every test passed.
+ * Verified against the running CLI (v2.1.223) rather than inferred: this shape
+ * produces a dedicated `hook_additional_context` attachment carrying the report
+ * straight into the model's context, which is exactly what is wanted.
+ *
+ * Do not "fix" this to stderr with exit 2. That path was tried and reverted.
+ * Claude Code classifies an exit-2 PostToolUse as a `hook_blocking_error` — an
+ * error on the tool call rather than a note about it — and the observed result
+ * was the model unsure whether the write had even succeeded. This hook reports;
+ * it must never look like a block.
  */
 function emit(context) {
-  if (!context) return 0;
-  process.stderr.write(context);
-  return 2;
+  if (context) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: context },
+    }));
+  }
+  return 0;
 }
 
 function main() {

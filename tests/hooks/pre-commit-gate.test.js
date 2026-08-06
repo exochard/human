@@ -10,11 +10,13 @@ const ROOT = path.join(__dirname, '../..');
 const GATE = path.join(ROOT, 'hooks/scripts/pre-commit-gate.js');
 
 /**
- * A PreToolUse denial is stderr plus exit 2, per the documented contract, and
- * the payload must carry `systemMessage`. The first version of this file
- * asserted stdout and exit 0 because that is what the hook happened to emit,
- * so a gate that blocked nothing passed twelve tests. Assert the contract, not
- * the implementation.
+ * A PreToolUse denial is `permissionDecision` on stdout at exit 0.
+ *
+ * Confirmed against the running CLI, not read off a doc: the denied call comes
+ * back with toolDenialKind "permission-rule" and a tool_result equal to the
+ * reason string. An earlier edit moved this to stderr with exit 2 on the
+ * strength of a documentation line; that path blocks but hands the model a JSON
+ * blob wrapped in a generic hook-error prefix, and it was reverted.
  */
 function run(command, env) {
   const result = spawnSync('node', [GATE], {
@@ -23,16 +25,16 @@ function run(command, env) {
     env: { ...process.env, HUMAN_SKIP: '', ...(env || {}) },
   });
 
-  if (result.status === 0) {
-    assert.strictEqual(result.stderr.trim(), '', 'an allowed command says nothing');
-    return { denied: false, reason: '', status: 0 };
-  }
+  assert.strictEqual(result.status, 0, 'the gate always exits 0; the decision travels in the payload');
+  assert.strictEqual(result.stderr.trim(), '', 'nothing goes to stderr; exit 2 there reads as a hook error');
 
-  assert.strictEqual(result.status, 2, 'a denial exits 2');
-  const payload = JSON.parse(result.stderr);
+  if (result.stdout.trim() === '') return { denied: false, reason: '', status: 0 };
+
+  const payload = JSON.parse(result.stdout);
   assert.strictEqual(payload.hookSpecificOutput.permissionDecision, 'deny');
-  assert.ok(payload.systemMessage, 'the denial explains itself through systemMessage');
-  return { denied: true, reason: payload.systemMessage, status: result.status };
+  const reason = payload.hookSpecificOutput.permissionDecisionReason;
+  assert.ok(reason, 'the denial explains itself');
+  return { denied: true, reason, status: 0 };
 }
 
 test('hooks.json registers the gate on Bash', () => {
@@ -90,21 +92,21 @@ test('a commit with no -m and no COMMIT_EDITMSG passes rather than guessing', ()
   assert.strictEqual(run('git commit').denied, false);
 });
 
-test('an allowed command exits 0, a denial exits 2', () => {
+test('the gate exits 0 whether it allows or denies', () => {
   assert.strictEqual(run('npm test').status, 0);
-  assert.strictEqual(run('git commit -m "This commit refactors things"').status, 2);
+  assert.strictEqual(run('git commit -m "This commit refactors things"').status, 0);
 });
 
-test('the denial payload names the event and carries the decision', () => {
+test('the denial payload names the event and carries the decision on stdout', () => {
   const result = spawnSync('node', [GATE], {
     input: JSON.stringify({ tool_input: { command: 'git commit -m "This commit refactors the parser"' } }),
     encoding: 'utf8',
     env: { ...process.env, HUMAN_SKIP: '' },
   });
-  const payload = JSON.parse(result.stderr);
+  const payload = JSON.parse(result.stdout);
   assert.strictEqual(payload.hookSpecificOutput.hookEventName, 'PreToolUse');
   assert.strictEqual(payload.hookSpecificOutput.permissionDecision, 'deny');
-  assert.strictEqual(result.stdout.trim(), '', 'nothing goes to stdout; the contract is stderr');
+  assert.strictEqual(result.stderr.trim(), '', 'stderr with exit 2 would surface as a hook error, not a reason');
 });
 
 done();

@@ -54,22 +54,28 @@ function allow() {
 }
 
 /**
- * A PreToolUse denial goes to stderr and exits 2. Not stdout, and not exit 0.
+ * Deny through `permissionDecision` on stdout, at exit 0.
  *
- * This was wrong in the first implementation and the tests did not catch it,
- * because they asserted the shape this file emitted rather than the shape
- * Claude Code reads. The gate reported a clean deny and blocked nothing.
+ * Verified against the running CLI (v2.1.223): the denied Bash call comes back
+ * with `toolDenialKind: "permission-rule"` and a tool_result that is exactly
+ * the reason string below. Clean block, clean explanation.
+ *
+ * Do not "fix" this to stderr with exit 2. That path was tried and reverted.
+ * Exit 2 does block, but Claude Code does not parse JSON on that path: it wraps
+ * whatever is on stderr verbatim behind a generic `PreToolUse:Bash hook error:`
+ * prefix, so the model receives a JSON blob inside an error message instead of
+ * a reason. It only reads well if the model does the untangling, which is this
+ * hook's job, not the model's.
  */
 function deny(reason) {
-  process.stderr.write(JSON.stringify({
+  process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'deny',
       permissionDecisionReason: reason,
     },
-    systemMessage: reason,
   }));
-  return 2;
+  return 0;
 }
 
 function main() {
