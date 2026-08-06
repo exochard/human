@@ -129,6 +129,38 @@ test('the hook never blocks', () => {
   assert.ok(!/"decision"\s*:\s*"block"/.test(r.stdout), 'emits context, not a block');
 });
 
+test('a persona path is never scanned', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'human-hook-'));
+  const file = path.join(dir, '.claude', 'human.local.md');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, 'It is robust, powerful, and comprehensive. '.repeat(40));
+  const r = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } }));
+  assert.strictEqual(r.stdout.trim(), '', 'a file about how you write is not written in your style');
+});
+
+test('session-start names a persona when one exists', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'human-home-'));
+  const file = path.join(home, '.claude', 'human', 'persona.md');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, '---\nlanguage: en\n---\n\nI build infrastructure.\n');
+
+  const context = contextOf(spawnSync('node', [SESSION_START], {
+    input: '', encoding: 'utf8', cwd: home, env: { ...process.env, HOME: home },
+  }));
+  assert.ok(/A persona is on disk/.test(context), context);
+  assert.ok(/\/human:human/.test(context), 'names the command that loads it');
+  assert.ok(!context.includes('I build infrastructure'), 'names the file without loading its content');
+  assert.ok(context.length <= MAX_CHARS, `injected ${context.length} chars, cap ${MAX_CHARS}`);
+});
+
+test('session-start says nothing about a persona when none exists', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'human-home-'));
+  const context = contextOf(spawnSync('node', [SESSION_START], {
+    input: '', encoding: 'utf8', cwd: home, env: { ...process.env, HOME: home },
+  }));
+  assert.ok(!/persona/i.test(context), 'no pointer to a file that is not there');
+});
+
 test('the hook completes within 250 ms on a 5 kB document', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'human-hook-'));
   const file = path.join(dir, 'big.md');

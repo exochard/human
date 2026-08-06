@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { checkFile } = require('../../lib/check');
 const { formatReport } = require('../../lib/format');
+const { isPersonaPath } = require('../../lib/persona');
 
 /**
  * Measure a markdown write, and say nothing unless it is over budget.
@@ -59,6 +60,8 @@ function main() {
   const target = filePathFrom(payload);
 
   if (!target || !target.endsWith('.md')) return emit('');
+  // A file describing how you write is not a document written in your style.
+  if (isPersonaPath(target)) return emit('');
   if (!fs.existsSync(target)) return emit('');
 
   let report;

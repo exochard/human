@@ -46,11 +46,32 @@ function render(invariants) {
   return lines.join('\n');
 }
 
+/**
+ * One line naming an existing persona, and nothing more.
+ *
+ * The persona itself loads on command only. That is a deliberate exception to
+ * the push-not-pull rule: a persona is large, most sessions write no prose at
+ * all, and paying its weight ambiently in every code session would be the
+ * wrong trade. Naming the file costs about fifteen tokens and means nobody has
+ * to remember it exists.
+ */
+function personaLine() {
+  try {
+    const { findPersona } = require('../../lib/persona');
+    const { userPath, projectPath } = findPersona(process.cwd());
+    const found = projectPath || userPath;
+    if (!found) return '';
+    return `\nA persona is on disk (${found}). Run /human:human to load it.`;
+  } catch (e) {
+    return '';
+  }
+}
+
 function main() {
   let context = '';
   try {
     const config = loadConfig(path.join(__dirname, '../..'));
-    const rendered = render(config.invariants);
+    const rendered = render(config.invariants) + personaLine();
     context = rendered.length <= MAX_CHARS ? rendered : `${rendered.slice(0, MAX_CHARS - 20)}\n[truncated]`;
   } catch (e) {
     // A broken rules file must not take the session down with it. Say so on
