@@ -11,7 +11,7 @@ First release.
 - Two advisory signals, `em-dash` and `antithesis`, which are counted and can never gate. A
   test asserts they stay that way.
 - Register routing. `rules/routes.yml` maps a path to a register; an unmatched path is handed
-  to the rubric in `SKILL.md` rather than treated as an error. Guidance documents for `commit`,
+  to the rubric in `skills/human/SKILL.md` rather than treated as an error. Guidance documents for `commit`,
   `readme`, `technical-doc`, `changelog`, and `pr`.
 - Register-scoped mechanical checks: `bolded-bullets`, `emoji-heading`, `commit-opener`, and
   `bullet-per-file`.

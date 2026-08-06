@@ -118,7 +118,7 @@ human/
   registers/
     commit.md  readme.md  technical-doc.md
     changelog.md  pr.md                                         [model]
-  SKILL.md                    router + judgment rubric          [model]
+  skills/human/SKILL.md       router + judgment rubric          [model]
   commands/
     human.md                  /human audit and fix
   lib/

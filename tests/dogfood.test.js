@@ -16,10 +16,11 @@ const { test, done } = require('./helpers/harness');
  */
 
 const ROOT = path.join(__dirname, '..');
+const REG = 'skills/human/references/registers';
 
 function shipped() {
-  const targets = ['README.md', 'CHANGELOG.md', 'SKILL.md', 'commands/human.md', 'benchmark/README.md'];
-  for (const f of fs.readdirSync(path.join(ROOT, 'registers'))) targets.push(`registers/${f}`);
+  const targets = ['README.md', 'CHANGELOG.md', 'skills/human/SKILL.md', 'commands/human.md', 'benchmark/README.md'];
+  for (const f of fs.readdirSync(path.join(ROOT, REG))) targets.push(`${REG}/${f}`);
   for (const dir of ['docs/specs', 'docs/plans']) {
     for (const f of fs.readdirSync(path.join(ROOT, dir))) targets.push(`${dir}/${f}`);
   }

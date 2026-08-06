@@ -7,6 +7,7 @@ const { parseYaml } = require('../lib/yaml');
 const { test, done } = require('./helpers/harness');
 
 const ROOT = path.join(__dirname, '..');
+const REGISTERS = 'skills/human/references/registers';
 
 const routes = parseYaml(fs.readFileSync(path.join(ROOT, 'rules/routes.yml'), 'utf8'));
 const registers = parseYaml(fs.readFileSync(path.join(ROOT, 'rules/registers.yml'), 'utf8'));
@@ -18,7 +19,7 @@ test('every routed register has a guidance document', () => {
   ]);
   for (const name of named) {
     assert.ok(
-      fs.existsSync(path.join(ROOT, 'registers', `${name}.md`)),
+      fs.existsSync(path.join(ROOT, REGISTERS, `${name}.md`)),
       `registers/${name}.md exists — config and guidance must not drift apart`
     );
   }
@@ -29,15 +30,15 @@ test('every guidance document is named in the config', () => {
     ...routes.routes.map((r) => r.register),
     ...Object.keys(registers.registers),
   ]);
-  for (const file of fs.readdirSync(path.join(ROOT, 'registers'))) {
+  for (const file of fs.readdirSync(path.join(ROOT, REGISTERS))) {
     const name = path.basename(file, '.md');
     assert.ok(named.has(name), `registers/${file} is orphaned; nothing routes to it`);
   }
 });
 
 test('every register document declares frontmatter', () => {
-  for (const file of fs.readdirSync(path.join(ROOT, 'registers'))) {
-    const raw = fs.readFileSync(path.join(ROOT, 'registers', file), 'utf8');
+  for (const file of fs.readdirSync(path.join(ROOT, REGISTERS))) {
+    const raw = fs.readFileSync(path.join(ROOT, REGISTERS, file), 'utf8');
     assert.ok(raw.startsWith('---\n'), `${file} opens with frontmatter`);
     const fm = parseYaml(raw.slice(4, raw.indexOf('\n---', 4)));
     assert.strictEqual(fm.name, path.basename(file, '.md'), `${file} frontmatter name matches filename`);
@@ -47,7 +48,7 @@ test('every register document declares frontmatter', () => {
 });
 
 test('SKILL.md declares frontmatter and the five-question rubric', () => {
-  const raw = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf8');
+  const raw = fs.readFileSync(path.join(ROOT, 'skills/human/SKILL.md'), 'utf8');
   assert.ok(raw.startsWith('---\n'), 'SKILL.md opens with frontmatter');
   const fm = parseYaml(raw.slice(4, raw.indexOf('\n---', 4)));
   assert.strictEqual(fm.name, 'human');
@@ -58,7 +59,7 @@ test('SKILL.md declares frontmatter and the five-question rubric', () => {
 });
 
 test('SKILL.md states the honesty constraint', () => {
-  const raw = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf8');
+  const raw = fs.readFileSync(path.join(ROOT, 'skills/human/SKILL.md'), 'utf8');
   assert.ok(/does not judge who wrote/i.test(raw), 'SKILL.md disclaims authorship detection');
 });
 

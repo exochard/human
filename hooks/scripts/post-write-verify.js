@@ -37,7 +37,7 @@ function filePathFrom(payload) {
 
 function registerDoc(register) {
   if (!register) return '';
-  const docPath = path.join(PLUGIN_ROOT, 'registers', `${register}.md`);
+  const docPath = path.join(PLUGIN_ROOT, 'skills/human/references/registers', `${register}.md`);
   try {
     return fs.readFileSync(docPath, 'utf8');
   } catch (e) {
