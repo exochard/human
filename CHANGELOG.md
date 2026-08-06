@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.2.0 — 2026-08-06
+
+### Breaking
+
+- `SKILL.md` moved from the plugin root to `skills/human/SKILL.md`, and the register guidance
+  from `registers/` to `skills/human/references/registers/`. The old layout was wrong: Claude
+  Code discovers skills at `skills/<name>/SKILL.md` and nowhere else, so the routing table and
+  the register rubric were never loaded by anything while every test reported green. Anyone who
+  referenced those paths directly needs to update them.
+- `/human` is now `/human:human-review`. `/human:human` is a different command that loads the
+  conventions rather than auditing a file.
+
+### Added
+
+- **Persona layer.** A declared identity — who you are, who you write for, the positions you
+  hold — read from `~/.claude/human/persona.md` or `.claude/human.local.md`, with project
+  fields winning over user fields one at a time. It shapes what the model is told and does not
+  change what the scanner verifies.
+- Budget adjustment from persona frontmatter, bounded by a ceiling published beside each budget
+  in `rules/invariants.yml`. An override past its ceiling is clamped, and the clamp is reported
+  by the doctor and by any scan it affects, on a passing document as much as a failing one. A
+  rule firing under an adjusted budget names the adjustment.
+- `allow` in persona frontmatter removes domain jargon from the vocabulary list. Closes the
+  v0.1.0 limit that a repo with real jargon had no way to declare it.
+- `/human:human` loads budgets, persona, and the routing table deliberately.
+- `/human:human-persona` runs the interview, with `--show` and `--edit`.
+- `/human:human-doctor` and `--doctor` report what is in force: budgets with their adjustments
+  and clamps, persona sources, vocabularies, register guidance, and the register a given path
+  resolves to. Always exits 0, because a diagnostic that can fail is not a diagnostic.
+- `--persona` on the CLI applies the persona to a scan.
+- `SessionStart` names an existing persona file in one line, without loading it.
+- Layout tests: skill location, component directories at plugin root, command frontmatter, and
+  every `hooks.json` command resolving to a file that exists.
+- `docs/persona-example.md`, a complete filled-in persona.
+
+### Fixed
+
+- Persona files are never scanned. A file describing how you write is not a document written in
+  your style.
+
+### Known limits
+
+- Deriving a persona from writing samples by measurement rather than self-report. It needs a
+  corpus of the user's writing large enough for stable statistics, which most users do not have.
+- Everything still listed under 0.1.0 below except the vocabulary allowlist, which shipped.
+
 ## 0.1.0 — 2026-08-06
 
 First release.
