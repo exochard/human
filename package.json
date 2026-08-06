@@ -1,0 +1,13 @@
+{
+  "name": "human",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/run-all.js",
+    "benchmark": "node benchmark/run-benchmark.js",
+    "check": "node bin/human.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

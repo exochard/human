@@ -1,0 +1,31 @@
+{
+  "name": "human",
+  "owner": {
+    "name": "clochard04",
+    "email": "peppecastellos245@icloud.com"
+  },
+  "metadata": {
+    "description": "Marketplace for human, a prose style-budget enforcer for Claude Code. Measures the markdown and git text an agent writes against published, sourced budgets. It does not judge who wrote the text."
+  },
+  "plugins": [
+    {
+      "name": "human",
+      "source": "./",
+      "description": "Enforces a published prose style budget on the markdown and git text an agent writes. Deterministic checks with zero model calls in the hook path, per-artifact register routing, and a stated confidence level and source on every rule.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "keywords": [
+        "prose",
+        "style",
+        "writing",
+        "linter",
+        "mechanical",
+        "ai-tells",
+        "readme",
+        "commit-message",
+        "register"
+      ],
+      "category": "workflow"
+    }
+  ]
+}
