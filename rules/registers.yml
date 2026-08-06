@@ -25,6 +25,12 @@ registers:
         budget: 0
         gates: false
   commit:
+    # Burstiness measures prose rhythm. A commit body is a list of facts, and
+    # uniform sentence length there is correct writing rather than a tell —
+    # this rule fired on a real commit message explaining a revert and would
+    # have blocked it. An invariant that does not apply to an artifact should
+    # not gate it.
+    disableInvariants: [burstiness]
     checks:
       commit-opener:
         gates: true

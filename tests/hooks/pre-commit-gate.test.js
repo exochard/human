@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { test, done } = require('../helpers/harness');
@@ -18,10 +19,17 @@ const GATE = path.join(ROOT, 'hooks/scripts/pre-commit-gate.js');
  * strength of a documentation line; that path blocks but hands the model a JSON
  * blob wrapped in a generic hook-error prefix, and it was reverted.
  */
+// The gate falls back to reading .git/COMMIT_EDITMSG from its cwd. Run every
+// case from an empty scratch directory so the outcome cannot depend on what
+// this repo happens to have committed last — that made this file pass or fail
+// by luck depending on the previous commit message.
+const SCRATCH = fs.mkdtempSync(path.join(os.tmpdir(), 'human-gate-'));
+
 function run(command, env) {
   const result = spawnSync('node', [GATE], {
     input: JSON.stringify({ tool_input: { command } }),
     encoding: 'utf8',
+    cwd: SCRATCH,
     env: { ...process.env, HUMAN_SKIP: '', ...(env || {}) },
   });
 
@@ -90,6 +98,24 @@ test('single quotes are handled', () => {
 
 test('a commit with no -m and no COMMIT_EDITMSG passes rather than guessing', () => {
   assert.strictEqual(run('git commit').denied, false);
+});
+
+test('burstiness does not gate a commit message', () => {
+  // A commit body is a list of facts. Uniform sentence length there is correct
+  // writing, not a tell. This fired on a real revert explanation and would have
+  // blocked the commit that fixed it.
+  const body = [
+    'Revert the hook output change.',
+    'The switch to stderr with exit two was wrong and has been reverted here.',
+    'Verified against the running CLI by inspecting the session transcripts.',
+    'PostToolUse with additionalContext on stdout reaches the model as intended.',
+    'At exit two the same report is classified as a blocking error instead.',
+    'PreToolUse with permissionDecision on stdout blocks cleanly every time.',
+    'Exit two blocks too but the JSON is never parsed on that path at all.',
+    'Both hooks now carry a comment saying not to repeat the change again.',
+  ].join(' ');
+  const r = run(`git commit -m "${body}"`);
+  assert.strictEqual(r.denied, false, r.reason);
 });
 
 test('the gate exits 0 whether it allows or denies', () => {

@@ -43,6 +43,15 @@
   components called `human`. The loader is `/human:human-load`, and a test asserts no command
   basename ever matches a skill directory again.
 
+- A register may switch off an invariant that does not apply to its artifact, via
+  `disableInvariants` in `rules/registers.yml`. The rule still runs and still reports; it
+  stops gating. `commit` disables `burstiness`: it measures prose rhythm, a commit body is a
+  list of facts, and it fired on a real revert explanation and would have blocked the commit
+  that fixed it.
+- The commit-gate tests run from a scratch directory. They read
+  `.git/COMMIT_EDITMSG` from the cwd, so their result depended on this repo's own last commit
+  message and they passed or failed by luck.
+
 ### Reverted during development
 
 Mid-development both hooks were switched from stdout at exit 0 to stderr at exit 2, on the
