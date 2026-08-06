@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "written_by": "session-end",
+  "written_at": "2026-08-06T11:22:08.691Z",
+  "cwd": "/home/peppe/Projects/Plugins/exoClaude/human",
+  "git": {
+    "branch": "main",
+    "commit_sha": "e24971121f731c83552af95135bcc28ac2c7f1b3",
+    "dirty": true,
+    "diff_stat": "lib/check.js                    | 33 +++++++++++++++++++++++++++++++--\n lib/format.js                   | 29 +++++++++++++++++++++++++++--\n rules/invariants.yml            | 10 +++++++---\n tests/lib/config-routes.test.js | 14 ++++++++++++++\n 4 files changed, 79 insertions(+), 7 deletions(-)",
+    "changed_files": [
+      {
+        "status": "M",
+        "path": "lib/check.js"
+      },
+      {
+        "status": "M",
+        "path": "lib/format.js"
+      },
+      {
+        "status": "M",
+        "path": "rules/invariants.yml"
+      },
+      {
+        "status": "M",
+        "path": "tests/lib/config-routes.test.js"
+      },
+      {
+        "status": "??",
+        "path": ".handoff/"
+      },
+      {
+        "status": "??",
+        "path": "lib/persona.js"
+      },
+      {
+        "status": "??",
+        "path": "tests/lib/check-persona.test.js"
+      },
+      {
+        "status": "??",
+        "path": "tests/lib/persona.test.js"
+      }
+    ]
+  }
+}

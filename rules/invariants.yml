@@ -3,27 +3,31 @@ note: "Budgets are rates per 1000 words unless stated otherwise. Every rule carr
 rules:
   tricolon:
     budget: 4.0
+    ceiling: 8.0
     minCount: 4
     confidence: strong
     gates: true
     source: "https://arxiv.org/abs/2604.19768"
-    note: "Measured at 7.13 per document in LLM text against 3.73 in human expert text, p<0.001. The budget sits between the two. minCount exists because the study counts per document while the budget is a rate: in a 200-word README a single series already scores 5.0, and one series is ordinary writing. Four is just above the published human per-document average."
+    note: "Measured at 7.13 per document in LLM text against 3.73 in human expert text, p<0.001. The budget sits between the two. The ceiling is 8.0, just above the measured LLM mean: a persona raising it that far is declaring it accepts prose at the machine average, which is a defensible thing to want and an honest thing to have written down. minCount exists because the study counts per document while the budget is a rate: in a 200-word README a single series already scores 5.0, and one series is ordinary writing. Four is just above the published human per-document average."
   vocab:
     budget: 2.0
+    ceiling: 6.0
     minCount: 3
     confidence: strong
     gates: true
     source: "https://arxiv.org/abs/2406.07016"
-    note: "Word lists live in rules/vocab/<language>.yml, each with its own source and confidence."
+    note: "Word lists live in rules/vocab/<language>.yml, each with its own source and confidence. The ceiling is three times the budget and still far below the 71.9 mean the benchmark measured on machine-written fixtures."
   burstiness:
     floor: 0.35
+    floorCeiling: 0.25
     minSentences: 8
     confidence: moderate
     gates: true
     source: "https://arxiv.org/abs/2308.09067"
-    note: "Fails below the floor, not above it. The floor is calibrated on this repo's fixture corpus, because the literature reports a direction rather than a threshold. See benchmark/README.md for the measured separation."
+    note: "Fails below the floor, not above it. The floor is calibrated on this repo's fixture corpus, because the literature reports a direction rather than a threshold. See benchmark/README.md for the measured separation. floorCeiling is the lowest a persona may push the floor, set at 0.25 because that is the lowest value observed anywhere in the fixture corpus."
   unbacked:
     budget: 1.5
+    ceiling: 4.0
     minCount: 2
     confidence: weak
     gates: false

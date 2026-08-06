@@ -26,6 +26,20 @@ test('every configured rule carries a confidence and a source', () => {
   }
 });
 
+test('every gating rule publishes a ceiling a persona cannot pass', () => {
+  for (const [id, entry] of Object.entries(cfg.invariants.rules)) {
+    if (!entry.gates) continue;
+    const bound = entry.ceiling !== undefined ? entry.ceiling : entry.floorCeiling;
+    assert.ok(bound !== undefined, `${id} publishes a ceiling`);
+    if (entry.budget !== undefined && entry.budget !== null) {
+      assert.ok(entry.ceiling > entry.budget, `${id} ceiling sits above its budget`);
+    }
+    if (entry.floor !== undefined && entry.floor !== null) {
+      assert.ok(entry.floorCeiling < entry.floor, `${id} floorCeiling sits below its floor`);
+    }
+  }
+});
+
 test('no gating rule has weak confidence', () => {
   for (const [id, entry] of Object.entries(cfg.invariants.rules)) {
     if (entry.gates) assert.notStrictEqual(entry.confidence, 'weak', `${id} gates on weak evidence`);
