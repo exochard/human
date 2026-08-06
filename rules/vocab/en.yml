@@ -1,0 +1,71 @@
+language: en
+confidence: strong
+source: "https://arxiv.org/abs/2406.07016"
+also: "https://arxiv.org/abs/2403.07183"
+note: "Words whose published frequency jumped sharply after 2022. Kobak et al. measured the shift across PubMed abstracts; Liang et al. measured jumps of 9.8x to 34.7x for specific adjectives in ICLR peer reviews. One instance of any of these proves nothing, and every one of them is a legitimate English word. The rate against a budget is the signal."
+words:
+  - delve
+  - delves
+  - delved
+  - delving
+  - intricate
+  - intricacies
+  - showcase
+  - showcases
+  - showcasing
+  - underscore
+  - underscores
+  - underscoring
+  - pivotal
+  - realm
+  - realms
+  - meticulous
+  - meticulously
+  - commendable
+  - garner
+  - garnered
+  - encompass
+  - encompasses
+  - encompassing
+  - seamless
+  - seamlessly
+  - robust
+  - robustly
+  - comprehensive
+  - comprehensively
+  - leverage
+  - leverages
+  - leveraging
+  - utilize
+  - utilizes
+  - utilizing
+  - foster
+  - fostering
+  - landscape
+  - tapestry
+  - myriad
+  - unlock
+  - unlocks
+  - unlocking
+  - elevate
+  - elevates
+  - elevating
+  - empower
+  - empowers
+  - empowering
+  - transformative
+  - holistic
+  - streamline
+  - streamlines
+  - streamlining
+  - harness
+  - harnesses
+  - harnessing
+  - testament
+  - crucial
+  - crucially
+  - cutting-edge
+  - noteworthy
+  - multifaceted
+  - nuanced
+  - paradigm

@@ -1,0 +1,35 @@
+language: it
+confidence: moderate
+source: "nessuno studio di corpus pubblicato sull'italiano generato da modelli linguistici"
+note: "Confidenza piu bassa dell'inglese, e la ragione va detta: non esiste uno studio di frequenza sull'italiano paragonabile a Kobak o Liang. Questa lista nasce dai connettivi e dai registri che la prosa tradotta o generata usa molto piu di chi scrive in italiano di suo. Va trattata come un'ipotesi misurabile, non come un dato acquisito. Chi trova un contro-esempio apra una issue."
+words:
+  - inoltre
+  - pertanto
+  - dunque
+  - altresi
+  - altresì
+  - "di conseguenza"
+  - "in conclusione"
+  - "in tal senso"
+  - "nel panorama"
+  - "e importante sottolineare"
+  - "è importante sottolineare"
+  - "vale la pena"
+  - fondamentale
+  - fondamentali
+  - cruciale
+  - approfondire
+  - approfondimento
+  - robusto
+  - robusta
+  - sfruttare
+  - sfruttando
+  - "all'avanguardia"
+  - "senza soluzione di continuita"
+  - "senza soluzione di continuità"
+  - poliedrico
+  - imprescindibile
+  - "un vero e proprio"
+  - efficientamento
+  - ottimizzare
+  - valorizzare
