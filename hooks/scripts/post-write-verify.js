@@ -46,13 +46,19 @@ function registerDoc(register) {
   }
 }
 
+/**
+ * PostToolUse feeds text back to the model through stderr with exit 2. Exit 0
+ * only puts stdout in the transcript, where the model may never read it.
+ *
+ * The first implementation emitted `additionalContext` on stdout at exit 0.
+ * That field is documented for SessionStart and appears nowhere in the
+ * PostToolUse contract, so the report was being written somewhere nobody was
+ * listening while every test passed.
+ */
 function emit(context) {
-  if (context) {
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: context },
-    }));
-  }
-  return 0;
+  if (!context) return 0;
+  process.stderr.write(context);
+  return 2;
 }
 
 function main() {

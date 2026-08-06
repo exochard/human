@@ -53,15 +53,23 @@ function allow() {
   return 0;
 }
 
+/**
+ * A PreToolUse denial goes to stderr and exits 2. Not stdout, and not exit 0.
+ *
+ * This was wrong in the first implementation and the tests did not catch it,
+ * because they asserted the shape this file emitted rather than the shape
+ * Claude Code reads. The gate reported a clean deny and blocked nothing.
+ */
 function deny(reason) {
-  process.stdout.write(JSON.stringify({
+  process.stderr.write(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'deny',
       permissionDecisionReason: reason,
     },
+    systemMessage: reason,
   }));
-  return 0;
+  return 2;
 }
 
 function main() {

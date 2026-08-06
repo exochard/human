@@ -9,15 +9,30 @@ const { test, done } = require('../helpers/harness');
 const ROOT = path.join(__dirname, '../..');
 const GATE = path.join(ROOT, 'hooks/scripts/pre-commit-gate.js');
 
+/**
+ * A PreToolUse denial is stderr plus exit 2, per the documented contract, and
+ * the payload must carry `systemMessage`. The first version of this file
+ * asserted stdout and exit 0 because that is what the hook happened to emit,
+ * so a gate that blocked nothing passed twelve tests. Assert the contract, not
+ * the implementation.
+ */
 function run(command, env) {
   const result = spawnSync('node', [GATE], {
     input: JSON.stringify({ tool_input: { command } }),
     encoding: 'utf8',
     env: { ...process.env, HUMAN_SKIP: '', ...(env || {}) },
   });
-  const denied = result.stdout.trim() !== ''
-    && JSON.parse(result.stdout).hookSpecificOutput.permissionDecision === 'deny';
-  return { denied, reason: denied ? JSON.parse(result.stdout).hookSpecificOutput.permissionDecisionReason : '', status: result.status };
+
+  if (result.status === 0) {
+    assert.strictEqual(result.stderr.trim(), '', 'an allowed command says nothing');
+    return { denied: false, reason: '', status: 0 };
+  }
+
+  assert.strictEqual(result.status, 2, 'a denial exits 2');
+  const payload = JSON.parse(result.stderr);
+  assert.strictEqual(payload.hookSpecificOutput.permissionDecision, 'deny');
+  assert.ok(payload.systemMessage, 'the denial explains itself through systemMessage');
+  return { denied: true, reason: payload.systemMessage, status: result.status };
 }
 
 test('hooks.json registers the gate on Bash', () => {
@@ -75,9 +90,21 @@ test('a commit with no -m and no COMMIT_EDITMSG passes rather than guessing', ()
   assert.strictEqual(run('git commit').denied, false);
 });
 
-test('the gate always exits 0', () => {
-  assert.strictEqual(run('git commit -m "This commit refactors things"').status, 0);
+test('an allowed command exits 0, a denial exits 2', () => {
   assert.strictEqual(run('npm test').status, 0);
+  assert.strictEqual(run('git commit -m "This commit refactors things"').status, 2);
+});
+
+test('the denial payload names the event and carries the decision', () => {
+  const result = spawnSync('node', [GATE], {
+    input: JSON.stringify({ tool_input: { command: 'git commit -m "This commit refactors the parser"' } }),
+    encoding: 'utf8',
+    env: { ...process.env, HUMAN_SKIP: '' },
+  });
+  const payload = JSON.parse(result.stderr);
+  assert.strictEqual(payload.hookSpecificOutput.hookEventName, 'PreToolUse');
+  assert.strictEqual(payload.hookSpecificOutput.permissionDecision, 'deny');
+  assert.strictEqual(result.stdout.trim(), '', 'nothing goes to stdout; the contract is stderr');
 });
 
 done();

@@ -20,9 +20,25 @@ function run(script, stdin, env) {
   });
 }
 
+/** SessionStart injects through stdout JSON; that field is documented for it. */
 function contextOf(result) {
   if (!result.stdout || result.stdout.trim() === '') return '';
   return JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+}
+
+/**
+ * PostToolUse feeds the model through stderr with exit 2. Exit 0 puts stdout
+ * in the transcript, which the model may never read, so silence is asserted as
+ * "exit 0 and nothing on either stream".
+ */
+function feedbackOf(result) {
+  if (result.status === 0) return '';
+  return result.stderr || '';
+}
+function assertSilent(result, why) {
+  assert.strictEqual(result.status, 0, why);
+  assert.strictEqual(result.stdout.trim(), '', why);
+  assert.strictEqual(result.stderr.trim(), '', why);
 }
 
 // ---- hooks.json ----
@@ -69,27 +85,19 @@ test('session-start repeats the honesty constraint', () => {
 // ---- post-write-verify ----
 
 test('a non-markdown path produces no output', () => {
-  const r = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: '/tmp/thing.js' } }));
-  assert.strictEqual(r.status, 0);
-  assert.strictEqual(r.stdout.trim(), '');
+  assertSilent(run(POST_WRITE, JSON.stringify({ tool_input: { file_path: '/tmp/thing.js' } })), 'non-markdown');
 });
 
 test('malformed stdin exits 0 silently', () => {
-  const r = run(POST_WRITE, 'not json at all');
-  assert.strictEqual(r.status, 0);
-  assert.strictEqual(r.stdout.trim(), '');
+  assertSilent(run(POST_WRITE, 'not json at all'), 'malformed stdin');
 });
 
 test('empty stdin exits 0 silently', () => {
-  const r = run(POST_WRITE, '');
-  assert.strictEqual(r.status, 0);
-  assert.strictEqual(r.stdout.trim(), '');
+  assertSilent(run(POST_WRITE, ''), 'empty stdin');
 });
 
 test('a missing file produces no output', () => {
-  const r = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: '/tmp/does-not-exist-xyz.md' } }));
-  assert.strictEqual(r.status, 0);
-  assert.strictEqual(r.stdout.trim(), '');
+  assertSilent(run(POST_WRITE, JSON.stringify({ tool_input: { file_path: '/tmp/does-not-exist-xyz.md' } })), 'missing file');
 });
 
 test('a clean markdown file produces no output', () => {
@@ -102,8 +110,7 @@ test('a clean markdown file produces no output', () => {
     'One fixture fixed that.',
     'The change itself is four characters long.',
   ].join(' '));
-  const r = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } }));
-  assert.strictEqual(r.stdout.trim(), '', r.stdout);
+  assertSilent(run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } })), 'clean file');
 });
 
 test('a violating README reports and loads its register document', () => {
@@ -114,19 +121,22 @@ test('a violating README reports and loads its register document', () => {
     + 'By leveraging a cutting-edge architecture, it will empower your team. '
     + 'We utilize a holistic approach to unlock transformative outcomes. ').repeat(5));
 
-  const context = contextOf(run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } })));
+  const result = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } }));
+  assert.strictEqual(result.status, 2, 'PostToolUse feeds the model through stderr with exit 2');
+  const context = feedbackOf(result);
   assert.ok(context.includes('vocab'), 'names the rule that fired');
   assert.ok(context.includes('Register guidance for "readme"'), 'lazily loaded the register doc');
   assert.ok(/Cover the project name/.test(context), 'the register document body is present');
 });
 
-test('the hook never blocks', () => {
+test('the hook reports without denying anything', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'human-hook-'));
   const file = path.join(dir, 'README.md');
   fs.writeFileSync(file, 'It is robust, powerful, and scalable. '.repeat(40));
   const r = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } }));
-  assert.strictEqual(r.status, 0, 'exit 0 even when over budget');
-  assert.ok(!/"decision"\s*:\s*"block"/.test(r.stdout), 'emits context, not a block');
+  assert.strictEqual(r.status, 2, 'exit 2 is how PostToolUse speaks to the model');
+  assert.ok(!/permissionDecision/.test(r.stderr), 'PostToolUse reports; it does not deny');
+  assert.ok(!/"decision"\s*:\s*"block"/.test(r.stderr));
 });
 
 test('a persona path is never scanned', () => {
@@ -134,8 +144,8 @@ test('a persona path is never scanned', () => {
   const file = path.join(dir, '.claude', 'human.local.md');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, 'It is robust, powerful, and comprehensive. '.repeat(40));
-  const r = run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } }));
-  assert.strictEqual(r.stdout.trim(), '', 'a file about how you write is not written in your style');
+  assertSilent(run(POST_WRITE, JSON.stringify({ tool_input: { file_path: file } })),
+    'a file about how you write is not written in your style');
 });
 
 test('session-start names a persona when one exists', () => {

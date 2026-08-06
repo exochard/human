@@ -37,6 +37,14 @@
 
 ### Fixed
 
+- **Both hooks were speaking into the void.** `PostToolUse` emitted its report as
+  `additionalContext` on stdout at exit 0. That field is documented for `SessionStart` and
+  appears nowhere in the `PostToolUse` contract, where the mechanism is stderr with exit 2, so
+  the violation report was written where the model does not read. `PreToolUse` emitted its
+  denial on stdout at exit 0 instead of stderr with exit 2 and `systemMessage`, so the commit
+  gate blocked nothing. Both were found by reading the official hook contract, not by the
+  tests, which asserted the shape the hooks happened to emit. The tests now assert the
+  contract.
 - Persona files are never scanned. A file describing how you write is not a document written in
   your style.
 
