@@ -3,12 +3,14 @@ note: "Budgets are rates per 1000 words unless stated otherwise. Every rule carr
 rules:
   tricolon:
     budget: 4.0
+    minCount: 4
     confidence: strong
     gates: true
     source: "https://arxiv.org/abs/2604.19768"
-    note: "Measured at 7.13 per document in LLM text against 3.73 in human expert text, p<0.001. The budget sits between the two."
+    note: "Measured at 7.13 per document in LLM text against 3.73 in human expert text, p<0.001. The budget sits between the two. minCount exists because the study counts per document while the budget is a rate: in a 200-word README a single series already scores 5.0, and one series is ordinary writing. Four is just above the published human per-document average."
   vocab:
     budget: 2.0
+    minCount: 3
     confidence: strong
     gates: true
     source: "https://arxiv.org/abs/2406.07016"
@@ -22,18 +24,21 @@ rules:
     note: "Fails below the floor, not above it. The floor is calibrated on this repo's fixture corpus, because the literature reports a direction rather than a threshold. See benchmark/README.md for the measured separation."
   unbacked:
     budget: 1.5
+    minCount: 2
     confidence: weak
     gates: false
     source: "inference from maintainer complaints; no controlled study located"
     adjectives: [blazing, seamless, effortless, powerful, incredible, amazing, revolutionary, game-changing, lightning-fast, unparalleled, best-in-class, world-class, "state-of-the-art", magical, delightful]
   em-dash:
     budget: 1.2
+    minCount: 3
     confidence: weak
     gates: false
     source: "https://www.seangoedecke.com/em-dashes/"
     note: "Real for GPT-4o and 4.1. A 2023 study of other model families found the opposite direction. Advisory only."
   antithesis:
     budget: 0.4
+    minCount: 2
     confidence: weak
     gates: false
     source: "no controlled study located"
