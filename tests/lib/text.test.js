@@ -57,6 +57,20 @@ test('extractProse strips list markers and emphasis', () => {
   assert.ok(p.includes('Bold lead'));
 });
 
+test('extractProse drops a human:off region', () => {
+  const md = 'Real prose here.\n\n<!-- human:off -->\nIt is fast, cheap, and robust.\n<!-- human:on -->\n\nMore prose.\n';
+  const p = extractProse(md);
+  assert.ok(!p.includes('cheap'), 'counter-examples must not be measured');
+  assert.ok(p.includes('Real prose here.'));
+  assert.ok(p.includes('More prose.'));
+});
+
+test('an unclosed human:off region runs to the end of the document', () => {
+  const p = extractProse('Real prose.\n\n<!-- human:off -->\nseamless robust comprehensive\n');
+  assert.ok(!p.includes('seamless'));
+  assert.ok(p.includes('Real prose.'));
+});
+
 test('splitSentences handles abbreviations and decimals', () => {
   const s = splitSentences('The rate is 7.13 per doc. That beats e.g. the human baseline here. Done with it now.');
   assert.strictEqual(s.length, 3);

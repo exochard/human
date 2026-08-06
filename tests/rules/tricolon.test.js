@@ -38,6 +38,16 @@ test('does not fire on a long subordinate clause with two commas', () => {
   assert.strictEqual(rule.check(doc, { budget: 4 }).count, 0);
 });
 
+test('does not fire on a four-item list', () => {
+  const doc = makeDoc('Four of them gate: tricolon rate, dated vocabulary, sentence-length variation, and unbacked superlatives.');
+  assert.strictEqual(rule.check(doc, { budget: 4 }).count, 0, 'a longer list is not a tricolon');
+});
+
+test('does not fire on a five-item list', () => {
+  const doc = makeDoc('We ship alpha, beta, gamma, delta, and epsilon in the same release today.');
+  assert.strictEqual(rule.check(doc, { budget: 4 }).count, 0);
+});
+
 test('reports rate per 1000 words and flags over budget', () => {
   const body = 'It is fast, cheap, and reliable. ' + 'word '.repeat(200);
   const r = rule.check(makeDoc(body), { budget: 4 });
