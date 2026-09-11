@@ -29,12 +29,98 @@ function readPayload() {
   }
 }
 
-/** The -m value, honouring single or double quotes. */
+/**
+ * Split a command into words the way a shell would: runs of non-space
+ * characters, quotes group and protect spaces, backslashes escape the next
+ * character inside or outside double quotes. Single quotes protect
+ * everything literally, as a shell does.
+ */
+function splitWords(command) {
+  const words = [];
+  let current = '';
+  let quote = null;
+  for (let i = 0; i < command.length; i += 1) {
+    const ch = command[i];
+    if (quote === "'") {
+      if (ch === "'") quote = null;
+      else current += ch;
+      continue;
+    }
+    if (quote === '"') {
+      if (ch === '"') quote = null;
+      else if (ch === '\\' && i + 1 < command.length) { current += command[i + 1]; i += 1; }
+      else current += ch;
+      continue;
+    }
+    if (/\s/.test(ch)) {
+      if (current !== '') { words.push(current); current = ''; }
+      continue;
+    }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (ch === '\\' && i + 1 < command.length) { current += command[i + 1]; i += 1; continue; }
+    current += ch;
+  }
+  if (current !== '') words.push(current);
+  return words;
+}
+
+/**
+ * The commit message as git would assemble it. Every -m/--message value
+ * becomes a paragraph; git joins multiple -m flags with a blank line, and so
+ * does this. -F/--file reads the message from that file. Combined short
+ * flags (-am) end in the flag that takes the value, and a value may be
+ * attached to its flag (-m"text"), as git allows.
+ *
+ * Returns null when the command names no message source at all, leaving the
+ * COMMIT_EDITMSG fallback to the caller. Returns '' when a source was named
+ * but could not be read: falling back to the editmsg then would mean judging
+ * the previous commit's message, which is worse than not judging. Anything
+ * unrecognized is the same deal — a gate that guesses is worse than one that
+ * declines to fire.
+ */
 function messageFromCommand(command) {
-  const match = command.match(/-m\s+(?:"((?:[^"\\]|\\.)*)"|'([^']*)'|(\S+))/);
-  if (!match) return null;
-  const value = match[1] !== undefined ? match[1].replace(/\\(.)/g, '$1') : (match[2] ?? match[3]);
-  return value || null;
+  const words = splitWords(command);
+  const paragraphs = [];
+  let file = null;
+
+  for (let i = 0; i < words.length; i += 1) {
+    const word = words[i];
+    const isMessageFlag = word === '-m' || word === '--message' || /^-[^-][a-zA-Z]*m$/.test(word);
+    const isFileFlag = word === '-F' || word === '--file' || /^-[^-][a-zA-Z]*F$/.test(word);
+    if (isMessageFlag || isFileFlag) {
+      // The value is the next word; combined shorts like -am end here too.
+      // A flag with no value after it is a command git itself will refuse.
+      if (i + 1 >= words.length) return '';
+      i += 1;
+      if (isMessageFlag) paragraphs.push(words[i]);
+      else file = words[i];
+      continue;
+    }
+    if (word.startsWith('--message=')) { paragraphs.push(word.slice('--message='.length)); continue; }
+    if (word.startsWith('--file=')) { file = word.slice('--file='.length); continue; }
+    if (/^-m(.+)/.test(word)) { paragraphs.push(word.slice(2)); continue; }
+    if (/^-F(.+)/.test(word)) { file = word.slice(2); continue; }
+  }
+
+  const text = paragraphs.map((p) => p.trim()).filter(Boolean).join('\n\n');
+  if (text) return text;
+  if (file !== null) return readMessageFile(file);
+  return null;
+}
+
+/**
+ * A -F/--file message, or null when the file cannot be read. The hook's cwd
+ * is the session's cwd and the command may cd elsewhere first; only the
+ * common case is handled, as in messageFromEditmsg. A missing file is
+ * announced on stderr rather than skipped in silence.
+ */
+function readMessageFile(file) {
+  try {
+    return fs.readFileSync(path.resolve(file), 'utf8').trim() || null;
+  } catch (e) {
+    process.stderr.write(`human: could not read commit message file ${file}; allowing\n`);
+    return null;
+  }
 }
 
 function messageFromEditmsg() {
@@ -87,7 +173,11 @@ function main() {
   if (!/\bgit\s+commit\b/.test(command)) return allow();
   if (/--no-verify/.test(command)) return allow();
 
-  const message = messageFromCommand(command) || messageFromEditmsg();
+  const fromCommand = messageFromCommand(command);
+  // null means no message source was named and the editor fallback applies;
+  // anything else, including '', means a source was named and the editmsg
+  // would be the previous commit's message, not this one's.
+  const message = fromCommand === null ? messageFromEditmsg() : fromCommand;
   if (!message) return allow();
 
   // Rate rules mean nothing at this length, and commit-opener is the only
