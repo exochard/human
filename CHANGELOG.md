@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.1 — 2026-09-11
+
+### Fixed
+
+- The commit gate assembles the message the way git does: every `-m` value
+  becomes a paragraph, and `-F`/`--file` is read from that file. Two `-m`
+  flags were judged on the first paragraph alone, and a `-F` message was
+  judged against the stale `.git/COMMIT_EDITMSG` of the previous commit —
+  able to block a clean message, or pass a bad one, for the wrong reason.
+  A named source that cannot be read now allows the commit and says so on
+  stderr, instead of falling back to that stale file.
+- An unknown check id in `rules/registers.yml` warns on stderr and the scan
+  continues. It was skipped in silence, which is how a typo ships and a
+  budget quietly stops applying.
+- Both hook output contracts were re-verified against the running CLI
+  (v2.1.268). `permissionDecision` and `additionalContext` on stdout at
+  exit 0 are unchanged; only the comments citing v2.1.223 were stale.
+
 ## 0.3.0 — 2026-08-06
 
 ### Breaking
