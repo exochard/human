@@ -16,6 +16,23 @@ test('an unknown register returns no results rather than throwing', () => {
   assert.deepStrictEqual(runRegister(makeDoc('x'), 'nonexistent', cfg.registers), []);
 });
 
+test('an unknown check id warns on stderr and the scan continues', () => {
+  const warnings = [];
+  const originalWrite = process.stderr.write;
+  process.stderr.write = (chunk) => { warnings.push(String(chunk)); return true; };
+  let results;
+  try {
+    results = runRegister(makeDoc('# Heading\n'), 'readme', {
+      registers: { readme: { checks: { 'no-such-check': {}, 'emoji-heading': { budget: 0 } } } },
+    });
+  } finally {
+    process.stderr.write = originalWrite;
+  }
+  assert.strictEqual(results.length, 1, 'the known check still ran');
+  assert.strictEqual(results[0].id, 'emoji-heading');
+  assert.ok(warnings.some((w) => w.includes('no-such-check')), 'the warning names the skipped check');
+});
+
 test('flags a README where most bullets open bolded', () => {
   const md = [
     '- **Automatic injection** context when you need it',
