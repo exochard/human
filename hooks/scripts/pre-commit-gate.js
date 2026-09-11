@@ -142,7 +142,7 @@ function allow() {
 /**
  * Deny through `permissionDecision` on stdout, at exit 0.
  *
- * Verified against the running CLI (v2.1.223): the denied Bash call comes back
+ * Verified against the running CLI (v2.1.268): the denied Bash call comes back
  * with `toolDenialKind: "permission-rule"` and a tool_result that is exactly
  * the reason string below. Clean block, clean explanation.
  *

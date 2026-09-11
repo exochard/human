@@ -49,7 +49,7 @@ function registerDoc(register) {
 /**
  * Report through `additionalContext` on stdout, at exit 0.
  *
- * Verified against the running CLI (v2.1.223) rather than inferred: this shape
+ * Verified against the running CLI (v2.1.268) rather than inferred: this shape
  * produces a dedicated `hook_additional_context` attachment carrying the report
  * straight into the model's context, which is exactly what is wanted.
  *
