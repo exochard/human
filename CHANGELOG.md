@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.2 — 2026-09-12
+
+### Fixed
+
+- **hooks.json schema drift.** The manifest carried a `$schema` key plus
+  per-entry `id` and `description` fields. Claude Code v2.1.268+ parses the
+  file but warns `unknown keys ... ignored` for every one of them (observed
+  live at plugin load). Stripped to the keys the hook loader accepts
+  (`matcher`/`hooks`; `type`/`command`/`timeout` per hook). The tests that
+  pinned the old `id` fields now pin the stable identity that actually
+  matters — the entry's matcher plus its script path — and a regression
+  guard pins the exact allowed key set so this drift class is caught
+  mechanically. No hook behavior changes.
+
 ## 0.3.1 — 2026-09-11
 
 ### Fixed

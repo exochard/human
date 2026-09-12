@@ -47,7 +47,7 @@ function run(command, env) {
 
 test('hooks.json registers the gate on Bash', () => {
   const hooks = JSON.parse(fs.readFileSync(path.join(ROOT, 'hooks/hooks.json'), 'utf8'));
-  assert.strictEqual(hooks.hooks.PreToolUse[0].id, 'human:pre-commit-gate');
+  assert.ok(hooks.hooks.PreToolUse[0].hooks[0].command.includes('hooks/scripts/pre-commit-gate.js'));
   assert.strictEqual(hooks.hooks.PreToolUse[0].matcher, 'Bash');
 });
 

@@ -44,11 +44,38 @@ function assertSilent(result, why) {
 
 // ---- hooks.json ----
 
-test('hooks.json registers both hooks with stable ids', () => {
+test('hooks.json registers the three hooks on their stable entry points', () => {
   const hooks = JSON.parse(fs.readFileSync(path.join(ROOT, 'hooks/hooks.json'), 'utf8'));
-  assert.strictEqual(hooks.hooks.SessionStart[0].id, 'human:session-start');
-  assert.strictEqual(hooks.hooks.PostToolUse[0].id, 'human:post-write-verify');
+  const sessionStart = hooks.hooks.SessionStart[0].hooks[0].command;
+  const commitGate = hooks.hooks.PreToolUse[0].hooks[0].command;
+  const verify = hooks.hooks.PostToolUse[0].hooks[0].command;
+  assert.ok(sessionStart.includes('hooks/scripts/session-start.js'), sessionStart);
+  assert.ok(commitGate.includes('hooks/scripts/pre-commit-gate.js'), commitGate);
+  assert.ok(verify.includes('hooks/scripts/post-write-verify.js'), verify);
+  assert.strictEqual(hooks.hooks.PreToolUse[0].matcher, 'Bash');
   assert.strictEqual(hooks.hooks.PostToolUse[0].matcher, 'Write|Edit');
+});
+
+// Regression guard (2026-09-12): hooks.json carried $schema plus per-entry
+// "id"/"description" keys — Claude Code v2.1.268+ warns "unknown keys ...
+// ignored" for each. Only loader-recognized keys may appear.
+test('hooks.json uses only loader-recognized keys', () => {
+  const hooks = JSON.parse(fs.readFileSync(path.join(ROOT, 'hooks/hooks.json'), 'utf8'));
+  assert.deepStrictEqual(Object.keys(hooks).sort(), ['hooks']);
+  for (const [eventName, entries] of Object.entries(hooks.hooks)) {
+    for (const entry of entries) {
+      for (const key of Object.keys(entry)) {
+        assert.ok(['matcher', 'hooks'].includes(key),
+          `${eventName} entry has unrecognized key "${key}" (loader warns and ignores it)`);
+      }
+      for (const hook of entry.hooks || []) {
+        for (const key of Object.keys(hook)) {
+          assert.ok(['type', 'command', 'timeout'].includes(key),
+            `${eventName} hook has unrecognized key "${key}" (loader warns and ignores it)`);
+        }
+      }
+    }
+  }
 });
 
 // ---- session-start ----

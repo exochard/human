@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
     "SessionStart": [
       {
@@ -9,9 +8,7 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.js\""
           }
-        ],
-        "description": "Inject the invariant prose budgets once, under a 1200-character cap",
-        "id": "human:session-start"
+        ]
       }
     ],
     "PreToolUse": [
@@ -22,9 +19,7 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-commit-gate.js\""
           }
-        ],
-        "description": "Hold a git commit whose message is over budget on the commit register; --no-verify and HUMAN_SKIP=1 both pass through",
-        "id": "human:pre-commit-gate"
+        ]
       }
     ],
     "PostToolUse": [
@@ -35,9 +30,7 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-write-verify.js\""
           }
-        ],
-        "description": "Measure a markdown write against its register and report only when over budget",
-        "id": "human:post-write-verify"
+        ]
       }
     ]
   }
